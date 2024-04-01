@@ -1,0 +1,92 @@
+// package abyssnet
+
+// import (
+// 	"context"
+// 	"crypto/tls"
+// 	"fmt"
+// 	"net"
+// 	"testing"
+// 	"time"
+
+// 	"github.com/quic-go/quic-go"
+// )
+
+// func TestQUICHost(t *testing.T) {
+
+// 	accomlished := make(chan bool)
+
+// 	//server side
+// 	go func() {
+// 		udpConn, err := net.ListenUDP("udp4", &net.UDPAddr{Port: 1234})
+// 		if err != nil {
+// 			t.Errorf(err.Error())
+// 		}
+
+// 		tlsConf := tls.Config{InsecureSkipVerify: true}
+// 		quicConf := quic.Config{EnableDatagrams: true}
+// 		ln, err := quic.Listen(udpConn, &tlsConf, &quicConf)
+// 		if err != nil {
+// 			t.Errorf(err.Error())
+// 		}
+
+// 		acceptCtx, acceptCtxTerminator := context.WithCancel(context.Background())
+// 		defer acceptCtxTerminator()
+
+// 		go func() {
+// 		acceptLoop:
+// 			for {
+// 				conn, err := ln.Accept(acceptCtx)
+// 				switch err {
+// 				case nil:
+// 				case context.Canceled:
+// 					fmt.Println("accept terminated")
+// 					break acceptLoop
+// 				default:
+// 					t.Errorf(err.Error())
+// 				}
+// 				conn.SendDatagram([]byte("Hello There! 말랑말랑"))
+// 			}
+// 		}()
+
+// 		<-time.After(time.Second * 5)
+// 	}()
+
+// 	//client side
+// 	go func() {
+// 		udpConn, err := net.ListenUDP("udp4", &net.UDPAddr{Port: 1235})
+// 		if err != nil {
+// 			t.Errorf(err.Error())
+// 		}
+
+// 		tlsConf := tls.Config{InsecureSkipVerify: true}
+// 		quicConf := quic.Config{EnableDatagrams: true}
+
+// 		targetAddr := net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 1234}
+
+// 		connectCtx, connectCtxCancel := context.WithCancel(context.Background())
+// 		defer connectCtxCancel()
+
+// 		go func() {
+// 			fmt.Println("dialing")
+// 			conn, err := quic.Dial(connectCtx, udpConn, &targetAddr, &tlsConf, &quicConf)
+// 			if err != nil {
+// 				t.Errorf(err.Error())
+// 			}
+// 			fmt.Println("dial result: ", conn.RemoteAddr().String())
+
+// 			payload, err := conn.ReceiveDatagram(connectCtx)
+// 			if err != nil {
+// 				t.Errorf(err.Error())
+// 			}
+// 			message := string(payload)
+// 			if message != "Hello There! 말랑말랑" {
+// 				t.Errorf("received message: " + message)
+// 			}
+// 			accomlished <- true
+// 		}()
+
+// 		<-time.After(time.Second * 5)
+// 	}()
+
+// 	<-accomlished
+// }
